@@ -8,7 +8,7 @@ final class IncomingMessageCell: UITableViewCell {
 
     private let bubbleView: UIView = {
         let v = UIView()
-        v.backgroundColor = .secondarySystemBackground
+        v.backgroundColor = .incomingBubble
         v.layer.cornerRadius = 18
         v.layer.cornerCurve = .continuous
         v.translatesAutoresizingMaskIntoConstraints = false
@@ -18,7 +18,7 @@ final class IncomingMessageCell: UITableViewCell {
     private let senderLabel: UILabel = {
         let l = UILabel()
         l.font = .systemFont(ofSize: 12, weight: .semibold)
-        l.textColor = .systemBlue
+        l.textColor = .ripplePrimary
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
     }()

@@ -24,7 +24,7 @@ final class ConversationsViewModel: ObservableObject {
     private var listener: ListenerRegistration?
 
     var currentUserId: String {
-        authService.currentUser?.uid ?? ""
+        authService.currentUserId
     }
 
     // MARK: - Init

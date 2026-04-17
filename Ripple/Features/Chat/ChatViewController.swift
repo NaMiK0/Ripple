@@ -16,11 +16,11 @@ final class ChatViewController: UIViewController {
         tv.register(OutgoingMessageCell.self, forCellReuseIdentifier: OutgoingMessageCell.reuseId)
         tv.register(IncomingMessageCell.self, forCellReuseIdentifier: IncomingMessageCell.reuseId)
         tv.separatorStyle = .none
-        tv.backgroundColor = .systemBackground
+        tv.backgroundColor = .rippleBackground
         tv.rowHeight = UITableView.automaticDimension
         tv.estimatedRowHeight = 60
         tv.keyboardDismissMode = .interactive
-        // Инвертируем таблицу — новые сообщения снизу, прокрутка вверх = загрузка старых
+        // Инвертируем таблицу — новые сообщения снизу
         tv.transform = CGAffineTransform(scaleX: 1, y: -1)
         return tv
     }()
@@ -28,7 +28,7 @@ final class ChatViewController: UIViewController {
     private lazy var typingLabel: UILabel = {
         let l = UILabel()
         l.font = .italicSystemFont(ofSize: 13)
-        l.textColor = .secondaryLabel
+        l.textColor = .rippleTextSecondary
         l.translatesAutoresizingMaskIntoConstraints = false
         l.alpha = 0
         return l
@@ -36,38 +36,57 @@ final class ChatViewController: UIViewController {
 
     // MARK: - Input Bar
 
+    /// Фон input bar — белая плашка с тенью сверху
     private let inputContainer: UIView = {
         let v = UIView()
-        v.backgroundColor = .secondarySystemBackground
+        v.backgroundColor = UIColor.systemBackground
         v.translatesAutoresizingMaskIntoConstraints = false
+        let line = UIView()
+        line.backgroundColor = UIColor.rippleTextSecondary.withAlphaComponent(0.15)
+        line.translatesAutoresizingMaskIntoConstraints = false
+        v.addSubview(line)
+        NSLayoutConstraint.activate([
+            line.topAnchor.constraint(equalTo: v.topAnchor),
+            line.leadingAnchor.constraint(equalTo: v.leadingAnchor),
+            line.trailingAnchor.constraint(equalTo: v.trailingAnchor),
+            line.heightAnchor.constraint(equalToConstant: 0.5)
+        ])
         return v
     }()
 
     private let inputField: UITextField = {
         let tf = UITextField()
         tf.placeholder = "Сообщение..."
-        tf.backgroundColor = .systemBackground
-        tf.layer.cornerRadius = 18
+        tf.font = .systemFont(ofSize: 16)
+        tf.backgroundColor = .rippleSurface
+        tf.layer.cornerRadius = 20
         tf.layer.cornerCurve = .continuous
-        tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 14, height: 0))
+        tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
         tf.leftViewMode = .always
-        tf.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 14, height: 0))
+        tf.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
         tf.rightViewMode = .always
         tf.translatesAutoresizingMaskIntoConstraints = false
         return tf
     }()
 
+    /// Кнопка отправки — градиентный круг
     private let sendButton: UIButton = {
-        var config = UIButton.Configuration.filled()
-        config.image = UIImage(systemName: "arrow.up")
-        config.cornerStyle = .capsule
-        config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
-        let btn = UIButton(configuration: config)
+        let btn = UIButton(type: .custom)
+        let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .bold)
+        let img = UIImage(systemName: "arrow.up", withConfiguration: config)?
+            .withTintColor(.white, renderingMode: .alwaysOriginal)
+        btn.setImage(img, for: .normal)
+        btn.setImage(img, for: .disabled)
+        btn.layer.cornerRadius = 18
+        btn.layer.cornerCurve = .continuous
+        btn.clipsToBounds = true
         btn.translatesAutoresizingMaskIntoConstraints = false
         btn.isEnabled = false
+        btn.alpha = 0.45
         return btn
     }()
 
+    private var sendButtonGradient: CAGradientLayer?
     private var inputContainerBottomConstraint: NSLayoutConstraint!
 
     // MARK: - Init
@@ -90,6 +109,17 @@ final class ChatViewController: UIViewController {
         viewModel.onViewDidLoad()
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if sendButtonGradient == nil {
+            let g = CAGradientLayer.ripplePrimary(frame: sendButton.bounds)
+            sendButton.layer.insertSublayer(g, at: 0)
+            sendButtonGradient = g
+        } else {
+            sendButtonGradient?.frame = sendButton.bounds
+        }
+    }
+
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         viewModel.onViewDidDisappear()
@@ -98,7 +128,7 @@ final class ChatViewController: UIViewController {
     // MARK: - Setup UI
 
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .rippleBackground
         navigationItem.largeTitleDisplayMode = .never
 
         view.addSubview(tableView)
@@ -115,10 +145,10 @@ final class ChatViewController: UIViewController {
             inputContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             inputContainerBottomConstraint,
 
-            inputField.topAnchor.constraint(equalTo: inputContainer.topAnchor, constant: 8),
+            inputField.topAnchor.constraint(equalTo: inputContainer.topAnchor, constant: 10),
             inputField.leadingAnchor.constraint(equalTo: inputContainer.leadingAnchor, constant: 12),
-            inputField.bottomAnchor.constraint(equalTo: inputContainer.bottomAnchor, constant: -8),
-            inputField.heightAnchor.constraint(equalToConstant: 36),
+            inputField.bottomAnchor.constraint(equalTo: inputContainer.bottomAnchor, constant: -10),
+            inputField.heightAnchor.constraint(equalToConstant: 40),
 
             sendButton.leadingAnchor.constraint(equalTo: inputField.trailingAnchor, constant: 8),
             sendButton.trailingAnchor.constraint(equalTo: inputContainer.trailingAnchor, constant: -12),
@@ -143,11 +173,9 @@ final class ChatViewController: UIViewController {
 
     private func setupActions() {
         sendButton.addTarget(self, action: #selector(sendTapped), for: .touchUpInside)
-
         inputField.addTarget(self, action: #selector(textChanged), for: .editingChanged)
         inputField.addTarget(self, action: #selector(textChanged), for: .editingDidEnd)
 
-        // Клавиатура
         NotificationCenter.default
             .publisher(for: UIResponder.keyboardWillChangeFrameNotification)
             .compactMap { $0.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect }
@@ -166,14 +194,21 @@ final class ChatViewController: UIViewController {
         guard let text = inputField.text, !text.isEmpty else { return }
         viewModel.send(text: text)
         inputField.text = ""
-        sendButton.isEnabled = false
+        setSendEnabled(false)
         viewModel.stopTyping()
     }
 
     @objc private func textChanged() {
         let hasText = !(inputField.text?.isEmpty ?? true)
-        sendButton.isEnabled = hasText
+        setSendEnabled(hasText)
         if hasText { viewModel.userIsTyping() }
+    }
+
+    private func setSendEnabled(_ enabled: Bool) {
+        sendButton.isEnabled = enabled
+        UIView.animate(withDuration: 0.15) {
+            self.sendButton.alpha = enabled ? 1.0 : 0.45
+        }
     }
 
     // MARK: - Bind ViewModel
@@ -242,7 +277,6 @@ extension ChatViewController: UITableViewDataSource {
 extension ChatViewController: UITableViewDelegate {
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        // В инвертированной таблице "конец" — это верх экрана
         let offsetY = scrollView.contentOffset.y
         let threshold = scrollView.contentSize.height - scrollView.frame.height - 100
         if offsetY > threshold {

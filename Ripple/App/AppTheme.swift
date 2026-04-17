@@ -3,26 +3,34 @@ import UIKit
 enum AppTheme {
 
     static func apply() {
-        // Navigation Bar
+        // MARK: - Navigation Bar
+
         let navAppearance = UINavigationBarAppearance()
         navAppearance.configureWithOpaqueBackground()
+        navAppearance.backgroundColor = .rippleCard
+        navAppearance.shadowColor = UIColor.rippleTextSecondary.withAlphaComponent(0.15)
         navAppearance.titleTextAttributes = [
-            .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
+            .font: UIFont.systemFont(ofSize: 17, weight: .semibold),
+            .foregroundColor: UIColor.rippleTextPrimary
         ]
         navAppearance.largeTitleTextAttributes = [
-            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
+            .font: UIFont.systemFont(ofSize: 34, weight: .bold),
+            .foregroundColor: UIColor.rippleTextPrimary
         ]
-        UINavigationBar.appearance().standardAppearance = navAppearance
+        UINavigationBar.appearance().standardAppearance   = navAppearance
         UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
-        UINavigationBar.appearance().tintColor = .rippleBlue
+        UINavigationBar.appearance().compactAppearance    = navAppearance
+        UINavigationBar.appearance().tintColor = .ripplePrimary
+        UINavigationBar.appearance().prefersLargeTitles   = true
 
-        // Tab Bar (на будущее)
-        let tabAppearance = UITabBarAppearance()
-        tabAppearance.configureWithOpaqueBackground()
-        UITabBar.appearance().standardAppearance = tabAppearance
+        // MARK: - Global Tint
 
-        // Global tint
         UIView.appearance(whenContainedInInstancesOf: [UIWindow.self])
-            .tintColor = .rippleBlue
+            .tintColor = .ripplePrimary
+
+        // MARK: - TableView
+
+        UITableView.appearance().backgroundColor = .rippleBackground
+        UITableView.appearance().separatorColor  = UIColor.rippleTextSecondary.withAlphaComponent(0.1)
     }
 }

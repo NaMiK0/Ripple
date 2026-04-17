@@ -28,7 +28,9 @@ final class OfflineMessageQueue {
     // MARK: - Singleton
 
     static let shared = OfflineMessageQueue()
-    private init() {
+
+    /// `internal` init для тестов; в продакшне используй `.shared`
+    init() {
         loadQueue()
         startMonitoring()
     }
@@ -82,7 +84,6 @@ final class OfflineMessageQueue {
 
     var pendingMessages: [QueuedMessage] { queue }
 
-    /// Отправляет все накопленные сообщения когда сеть восстановилась
     private func flushQueue() {
         guard !queue.isEmpty else { return }
         onConnectionRestored?()

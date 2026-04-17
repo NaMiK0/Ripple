@@ -5,6 +5,8 @@ import FirebaseFirestore
 
 protocol AuthServiceProtocol {
     var currentUser: FirebaseAuth.User? { get }
+    /// UID авторизованного пользователя (пустая строка если не авторизован)
+    var currentUserId: String { get }
     func signIn(email: String, password: String) async throws
     func register(email: String, password: String, displayName: String) async throws
     func signOut() throws
@@ -20,6 +22,10 @@ final class AuthService: AuthServiceProtocol {
         auth.currentUser
     }
 
+    var currentUserId: String {
+        auth.currentUser?.uid ?? ""
+    }
+
     func signIn(email: String, password: String) async throws {
         try await auth.signIn(withEmail: email, password: password)
     }
@@ -28,7 +34,6 @@ final class AuthService: AuthServiceProtocol {
         let result = try await auth.createUser(withEmail: email, password: password)
         let uid = result.user.uid
 
-        // Сохраняем профиль пользователя в Firestore
         let userData: [String: Any] = [
             "id": uid,
             "displayName": displayName,

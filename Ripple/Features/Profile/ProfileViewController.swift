@@ -15,18 +15,31 @@ final class ProfileViewController: UIViewController {
 
     // MARK: - UI
 
+    private let headerCard: UIView = {
+        let v = UIView()
+        v.translatesAutoresizingMaskIntoConstraints = false
+        v.clipsToBounds = true
+        return v
+    }()
+
+    private var headerGradient: CAGradientLayer?
+
     private let avatarImageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
         iv.clipsToBounds = true
-        iv.layer.cornerRadius = 50
+        iv.layer.cornerRadius = 48
+        iv.layer.cornerCurve = .continuous
+        iv.layer.borderWidth = 3
+        iv.layer.borderColor = UIColor.white.withAlphaComponent(0.6).cgColor
         iv.translatesAutoresizingMaskIntoConstraints = false
         return iv
     }()
 
     private let nameLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 22, weight: .semibold)
+        l.font = .systemFont(ofSize: 22, weight: .bold)
+        l.textColor = .white
         l.textAlignment = .center
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
@@ -34,44 +47,51 @@ final class ProfileViewController: UIViewController {
 
     private let emailLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 15)
-        l.textColor = .secondaryLabel
+        l.font = .systemFont(ofSize: 14)
+        l.textColor = UIColor.white.withAlphaComponent(0.75)
         l.textAlignment = .center
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
     }()
 
-    private lazy var editNameButton: UIButton = {
-        var config = UIButton.Configuration.tinted()
-        config.title = "Изменить имя"
-        config.image = UIImage(systemName: "pencil")
-        config.imagePadding = 6
-        config.cornerStyle = .medium
-        let btn = UIButton(configuration: config)
-        btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.addTarget(self, action: #selector(editNameTapped), for: .touchUpInside)
-        return btn
-    }()
-
-    private lazy var logoutButton: UIButton = {
-        var config = UIButton.Configuration.tinted()
-        config.title = "Выйти из аккаунта"
-        config.image = UIImage(systemName: "rectangle.portrait.and.arrow.right")
-        config.imagePadding = 6
-        config.cornerStyle = .medium
-        config.baseBackgroundColor = .systemRed
-        config.baseForegroundColor = .systemRed
-        let btn = UIButton(configuration: config)
-        btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.addTarget(self, action: #selector(logoutTapped), for: .touchUpInside)
-        return btn
-    }()
-
-    private let divider: UIView = {
+    private let contentCard: UIView = {
         let v = UIView()
-        v.backgroundColor = .separator
+        v.backgroundColor = UIColor.systemBackground
+        v.layer.cornerRadius = 28
+        v.layer.cornerCurve = .continuous
+        v.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         v.translatesAutoresizingMaskIntoConstraints = false
         return v
+    }()
+
+    private lazy var editNameButton: RippleActionRow = {
+        RippleActionRow(
+            icon: "pencil.circle.fill",
+            iconColor: .ripplePrimary,
+            title: "Изменить имя",
+            action: { [weak self] in self?.editNameTapped() }
+        )
+    }()
+
+    private lazy var logoutButton: RippleActionRow = {
+        RippleActionRow(
+            icon: "rectangle.portrait.and.arrow.right",
+            iconColor: UIColor(hex: "#ED4245"),
+            title: "Выйти из аккаунта",
+            textColor: UIColor(hex: "#ED4245"),
+            action: { [weak self] in self?.logoutTapped() }
+        )
+    }()
+
+    private let versionLabel: UILabel = {
+        let l = UILabel()
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        l.text = "Ripple v\(version)"
+        l.font = .systemFont(ofSize: 12)
+        l.textColor = .rippleTextSecondary
+        l.textAlignment = .center
+        l.translatesAutoresizingMaskIntoConstraints = false
+        return l
     }()
 
     // MARK: - Lifecycle
@@ -82,11 +102,22 @@ final class ProfileViewController: UIViewController {
         loadUserData()
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if headerGradient == nil {
+            let g = CAGradientLayer.rippleHero(frame: headerCard.bounds)
+            headerCard.layer.insertSublayer(g, at: 0)
+            headerGradient = g
+        } else {
+            headerGradient?.frame = headerCard.bounds
+        }
+    }
+
     // MARK: - Setup
 
     private func setupUI() {
         title = "Профиль"
-        view.backgroundColor = .systemGroupedBackground
+        view.backgroundColor = .rippleBackground
         navigationItem.largeTitleDisplayMode = .never
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .close,
@@ -94,35 +125,61 @@ final class ProfileViewController: UIViewController {
             action: #selector(closeTapped)
         )
 
-        let stack = UIStackView(arrangedSubviews: [
-            avatarImageView, nameLabel, emailLabel,
-            editNameButton, divider, logoutButton
-        ])
-        stack.axis = .vertical
-        stack.alignment = .center
-        stack.spacing = 16
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.setCustomSpacing(8, after: nameLabel)
-        stack.setCustomSpacing(24, after: emailLabel)
-        stack.setCustomSpacing(24, after: editNameButton)
-        stack.setCustomSpacing(24, after: divider)
+        view.addSubview(headerCard)
+        headerCard.addSubview(avatarImageView)
+        headerCard.addSubview(nameLabel)
+        headerCard.addSubview(emailLabel)
 
-        view.addSubview(stack)
+        view.addSubview(contentCard)
+
+        let divider = makeDivider()
+        let actionStack = UIStackView(arrangedSubviews: [editNameButton, divider, logoutButton])
+        actionStack.axis = .vertical
+        actionStack.spacing = 0
+        actionStack.translatesAutoresizingMaskIntoConstraints = false
+
+        contentCard.addSubview(actionStack)
+        contentCard.addSubview(versionLabel)
 
         NSLayoutConstraint.activate([
-            avatarImageView.widthAnchor.constraint(equalToConstant: 100),
-            avatarImageView.heightAnchor.constraint(equalToConstant: 100),
+            headerCard.topAnchor.constraint(equalTo: view.topAnchor),
+            headerCard.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            headerCard.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            headerCard.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.38),
 
-            divider.widthAnchor.constraint(equalTo: stack.widthAnchor),
-            divider.heightAnchor.constraint(equalToConstant: 0.5),
+            avatarImageView.centerXAnchor.constraint(equalTo: headerCard.centerXAnchor),
+            avatarImageView.centerYAnchor.constraint(equalTo: headerCard.centerYAnchor, constant: -20),
+            avatarImageView.widthAnchor.constraint(equalToConstant: 96),
+            avatarImageView.heightAnchor.constraint(equalToConstant: 96),
 
-            editNameButton.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -48),
-            logoutButton.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -48),
+            nameLabel.topAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 12),
+            nameLabel.leadingAnchor.constraint(equalTo: headerCard.leadingAnchor, constant: 24),
+            nameLabel.trailingAnchor.constraint(equalTo: headerCard.trailingAnchor, constant: -24),
 
-            stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 32),
-            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            emailLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
+            emailLabel.leadingAnchor.constraint(equalTo: headerCard.leadingAnchor, constant: 24),
+            emailLabel.trailingAnchor.constraint(equalTo: headerCard.trailingAnchor, constant: -24),
+
+            contentCard.topAnchor.constraint(equalTo: headerCard.bottomAnchor, constant: -24),
+            contentCard.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            contentCard.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            contentCard.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            actionStack.topAnchor.constraint(equalTo: contentCard.topAnchor, constant: 32),
+            actionStack.leadingAnchor.constraint(equalTo: contentCard.leadingAnchor),
+            actionStack.trailingAnchor.constraint(equalTo: contentCard.trailingAnchor),
+
+            versionLabel.bottomAnchor.constraint(equalTo: contentCard.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            versionLabel.centerXAnchor.constraint(equalTo: contentCard.centerXAnchor)
         ])
+    }
+
+    private func makeDivider() -> UIView {
+        let v = UIView()
+        v.backgroundColor = UIColor.rippleTextSecondary.withAlphaComponent(0.15)
+        v.translatesAutoresizingMaskIntoConstraints = false
+        v.heightAnchor.constraint(equalToConstant: 0.5).isActive = true
+        return v
     }
 
     private func loadUserData() {
@@ -131,7 +188,7 @@ final class ProfileViewController: UIViewController {
         currentName = name
         nameLabel.text = name
         emailLabel.text = user.email
-        avatarImageView.setInitialsAvatar(name: name, size: 100)
+        avatarImageView.setInitialsAvatar(name: name, size: 96)
     }
 
     // MARK: - Actions
@@ -140,7 +197,7 @@ final class ProfileViewController: UIViewController {
         dismiss(animated: true)
     }
 
-    @objc private func editNameTapped() {
+    private func editNameTapped() {
         let alert = UIAlertController(title: "Изменить имя", message: nil, preferredStyle: .alert)
         alert.addTextField { [weak self] tf in
             tf.text = self?.currentName
@@ -157,7 +214,7 @@ final class ProfileViewController: UIViewController {
         present(alert, animated: true)
     }
 
-    @objc private func logoutTapped() {
+    private func logoutTapped() {
         showConfirmAlert(
             title: "Выйти из аккаунта?",
             message: "Вы уверены?",
@@ -172,8 +229,6 @@ final class ProfileViewController: UIViewController {
     private func saveName(_ name: String) {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         showSpinner()
-
-        // Обновляем в Firestore
         db.collection("users").document(uid).updateData(["displayName": name]) { [weak self] error in
             self?.hideSpinner()
             if let error {
@@ -182,7 +237,7 @@ final class ProfileViewController: UIViewController {
             }
             self?.currentName = name
             self?.nameLabel.text = name
-            self?.avatarImageView.setInitialsAvatar(name: name, size: 100)
+            self?.avatarImageView.setInitialsAvatar(name: name, size: 96)
         }
     }
 
@@ -195,5 +250,86 @@ final class ProfileViewController: UIViewController {
         } catch {
             showAlert(title: "Ошибка", message: error.localizedDescription)
         }
+    }
+}
+
+// MARK: - RippleActionRow
+
+/// Строка-кнопка в стиле настроек iOS с иконкой и заголовком
+private final class RippleActionRow: UIView {
+
+    private let action: () -> Void
+
+    init(icon: String, iconColor: UIColor, title: String,
+         textColor: UIColor = .rippleTextPrimary, action: @escaping () -> Void) {
+        self.action = action
+        super.init(frame: .zero)
+
+        translatesAutoresizingMaskIntoConstraints = false
+        heightAnchor.constraint(equalToConstant: 56).isActive = true
+
+        let iconBg = UIView()
+        iconBg.backgroundColor = iconColor.withAlphaComponent(0.12)
+        iconBg.layer.cornerRadius = 10
+        iconBg.translatesAutoresizingMaskIntoConstraints = false
+
+        let iconView = UIImageView(image: UIImage(systemName: icon))
+        iconView.tintColor = iconColor
+        iconView.contentMode = .scaleAspectFit
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+
+        iconBg.addSubview(iconView)
+
+        let titleLabel = UILabel()
+        titleLabel.text = title
+        titleLabel.font = .systemFont(ofSize: 16, weight: .medium)
+        titleLabel.textColor = textColor
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let chevron = UIImageView(image: UIImage(systemName: "chevron.right"))
+        chevron.tintColor = UIColor.rippleTextSecondary.withAlphaComponent(0.5)
+        chevron.contentMode = .scaleAspectFit
+        chevron.translatesAutoresizingMaskIntoConstraints = false
+
+        addSubview(iconBg)
+        addSubview(titleLabel)
+        addSubview(chevron)
+
+        NSLayoutConstraint.activate([
+            iconBg.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            iconBg.centerYAnchor.constraint(equalTo: centerYAnchor),
+            iconBg.widthAnchor.constraint(equalToConstant: 36),
+            iconBg.heightAnchor.constraint(equalToConstant: 36),
+
+            iconView.centerXAnchor.constraint(equalTo: iconBg.centerXAnchor),
+            iconView.centerYAnchor.constraint(equalTo: iconBg.centerYAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 18),
+            iconView.heightAnchor.constraint(equalToConstant: 18),
+
+            titleLabel.leadingAnchor.constraint(equalTo: iconBg.trailingAnchor, constant: 14),
+            titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+
+            chevron.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            chevron.centerYAnchor.constraint(equalTo: centerYAnchor),
+            chevron.widthAnchor.constraint(equalToConstant: 12),
+            chevron.heightAnchor.constraint(equalToConstant: 12)
+        ])
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(tapped))
+        addGestureRecognizer(tap)
+        isUserInteractionEnabled = true
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    @objc private func tapped() {
+        UIView.animate(withDuration: 0.08, animations: {
+            self.alpha = 0.5
+        }) { _ in
+            UIView.animate(withDuration: 0.12) {
+                self.alpha = 1.0
+            }
+        }
+        action()
     }
 }

@@ -148,7 +148,6 @@ final class MessageService: MessageServiceProtocol {
 
         try ref.setData(from: message)
 
-        // Обновляем lastMessage и lastMessageTimestamp в документе чата
         let preview = message.imageURL != nil ? "📷 Фото" : message.text
         try await db.collection("conversations")
             .document(conversationId)

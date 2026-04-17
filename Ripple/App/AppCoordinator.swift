@@ -28,7 +28,6 @@ final class AppCoordinator {
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
 
-        // Слушаем deep link из push-уведомления когда приложение работает в фоне
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleOpenConversation(_:)),
@@ -58,10 +57,8 @@ final class AppCoordinator {
     // MARK: - Main Flow
 
     private func showMainFlow() {
-        // Запрашиваем разрешение на push-уведомления
         PushNotificationService.shared.requestAuthorization()
 
-        // Подписываемся на восстановление сети → flush офлайн-очереди
         OfflineMessageQueue.shared.onConnectionRestored = { [weak self] in
             self?.flushOfflineQueue()
         }
@@ -74,7 +71,6 @@ final class AppCoordinator {
         conversationsCoordinator = coordinator
         coordinator.start()
 
-        // Обрабатываем deep link, если приложение открылось через уведомление (terminated state)
         if let conversationId = AppCoordinator.pendingDeepLink {
             AppCoordinator.pendingDeepLink = nil
             coordinator.openChat(conversationId: conversationId)

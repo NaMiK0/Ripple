@@ -63,7 +63,6 @@ final class ConversationService: ConversationServiceProtocol {
         otherUserId: String,
         otherUserName: String
     ) async throws -> String {
-        // Проверяем, нет ли уже чата между этими двумя пользователями
         let existing = try await db.collection("conversations")
             .whereField("participantIds", arrayContains: currentUserId)
             .getDocuments()
@@ -75,7 +74,6 @@ final class ConversationService: ConversationServiceProtocol {
             return found.documentID
         }
 
-        // Создаём новый чат
         let ref = db.collection("conversations").document()
         let conversation = Conversation(
             participantIds: [currentUserId, otherUserId],

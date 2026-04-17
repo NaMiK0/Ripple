@@ -19,7 +19,9 @@ final class ConversationsViewController: UIViewController {
         tv.register(ConversationCell.self, forCellReuseIdentifier: ConversationCell.reuseId)
         tv.rowHeight = UITableView.automaticDimension
         tv.estimatedRowHeight = 72
-        tv.separatorInset = UIEdgeInsets(top: 0, left: 76, bottom: 0, right: 0)
+        tv.separatorInset = UIEdgeInsets(top: 0, left: 80, bottom: 0, right: 0)
+        tv.separatorColor = UIColor.rippleTextSecondary.withAlphaComponent(0.15)
+        tv.backgroundColor = .rippleBackground
         tv.isSkeletonable = true
         return tv
     }()
@@ -29,29 +31,54 @@ final class ConversationsViewController: UIViewController {
         container.translatesAutoresizingMaskIntoConstraints = false
         container.isHidden = true
 
-        let imageView = UIImageView(image: UIImage(systemName: "bubble.left.and.bubble.right"))
-        imageView.tintColor = .systemGray3
+        let iconWrapper = UIView()
+        iconWrapper.translatesAutoresizingMaskIntoConstraints = false
+        iconWrapper.layer.cornerRadius = 44
+        iconWrapper.clipsToBounds = true
+
+        let iconBg = CAGradientLayer.rippleHero(frame: CGRect(x: 0, y: 0, width: 88, height: 88))
+        iconWrapper.layer.addSublayer(iconBg)
+
+        let imageView = UIImageView(image: UIImage(systemName: "bubble.left.and.bubble.right.fill"))
+        imageView.tintColor = .white
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
 
-        let label = UILabel()
-        label.text = "Нет чатов\nНажмите + чтобы начать"
-        label.textColor = .secondaryLabel
-        label.font = .systemFont(ofSize: 15)
-        label.textAlignment = .center
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
+        iconWrapper.addSubview(imageView)
+        NSLayoutConstraint.activate([
+            iconWrapper.widthAnchor.constraint(equalToConstant: 88),
+            iconWrapper.heightAnchor.constraint(equalToConstant: 88),
+            imageView.centerXAnchor.constraint(equalTo: iconWrapper.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: iconWrapper.centerYAnchor),
+            imageView.widthAnchor.constraint(equalToConstant: 40),
+            imageView.heightAnchor.constraint(equalToConstant: 40)
+        ])
 
-        let stack = UIStackView(arrangedSubviews: [imageView, label])
+        let titleLabel = UILabel()
+        titleLabel.text = "Нет чатов"
+        titleLabel.font = .systemFont(ofSize: 20, weight: .semibold)
+        titleLabel.textColor = .rippleTextPrimary
+        titleLabel.textAlignment = .center
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let subtitleLabel = UILabel()
+        subtitleLabel.text = "Нажмите + чтобы начать переписку"
+        subtitleLabel.font = .systemFont(ofSize: 15)
+        subtitleLabel.textColor = .rippleTextSecondary
+        subtitleLabel.textAlignment = .center
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let stack = UIStackView(arrangedSubviews: [iconWrapper, titleLabel, subtitleLabel])
         stack.axis = .vertical
-        stack.spacing = 16
+        stack.alignment = .center
+        stack.spacing = 12
+        stack.setCustomSpacing(20, after: iconWrapper)
         stack.translatesAutoresizingMaskIntoConstraints = false
 
         container.addSubview(stack)
         NSLayoutConstraint.activate([
-            imageView.heightAnchor.constraint(equalToConstant: 60),
             stack.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            stack.centerYAnchor.constraint(equalTo: container.centerYAnchor)
+            stack.centerYAnchor.constraint(equalTo: container.centerYAnchor, constant: -40)
         ])
         return container
     }()
@@ -75,6 +102,11 @@ final class ConversationsViewController: UIViewController {
         bindViewModel()
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         viewModel.onViewDidAppear()
@@ -88,7 +120,7 @@ final class ConversationsViewController: UIViewController {
     // MARK: - Setup UI
 
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .rippleBackground
         view.addSubview(tableView)
         view.addSubview(emptyStateView)
 
@@ -106,14 +138,18 @@ final class ConversationsViewController: UIViewController {
     }
 
     private func setupNavBar() {
-        title = "Chats"
+        title = "Ripple"
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.largeTitleDisplayMode = .always
+
         navigationItem.rightBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .compose,
+            image: UIImage(systemName: "square.and.pencil"),
+            style: .plain,
             target: self,
             action: #selector(newConversationTapped)
         )
         navigationItem.leftBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "person.circle"),
+            image: UIImage(systemName: "person.circle.fill"),
             style: .plain,
             target: self,
             action: #selector(profileTapped)
@@ -144,14 +180,12 @@ final class ConversationsViewController: UIViewController {
             return cell
         }
 
-        // Свайп для удаления
         tableView.delegate = self
     }
 
     // MARK: - Bind ViewModel
 
     private func bindViewModel() {
-        // Skeleton пока грузим
         viewModel.$isLoading
             .receive(on: RunLoop.main)
             .sink { [weak self] loading in
@@ -164,7 +198,6 @@ final class ConversationsViewController: UIViewController {
             }
             .store(in: &cancellables)
 
-        // Обновляем список
         viewModel.$conversations
             .receive(on: RunLoop.main)
             .sink { [weak self] conversations in
@@ -177,7 +210,6 @@ final class ConversationsViewController: UIViewController {
             }
             .store(in: &cancellables)
 
-        // Ошибки
         viewModel.$errorMessage
             .compactMap { $0 }
             .receive(on: RunLoop.main)
@@ -196,8 +228,6 @@ final class ConversationsViewController: UIViewController {
     @objc private func profileTapped() {
         viewModel.onProfileTapped?()
     }
-
-    // MARK: - Helpers
 
     private func showErrorAlert(message: String) {
         let alert = UIAlertController(title: "Ошибка", message: message, preferredStyle: .alert)
@@ -225,6 +255,7 @@ extension ConversationsViewController: UITableViewDelegate {
             completion(true)
         }
         delete.image = UIImage(systemName: "trash")
+        delete.backgroundColor = UIColor(hex: "#ED4245")
         return UISwipeActionsConfiguration(actions: [delete])
     }
 }

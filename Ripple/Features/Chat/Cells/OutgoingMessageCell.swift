@@ -8,12 +8,14 @@ final class OutgoingMessageCell: UITableViewCell {
 
     private let bubbleView: UIView = {
         let v = UIView()
-        v.backgroundColor = .systemBlue
         v.layer.cornerRadius = 18
         v.layer.cornerCurve = .continuous
+        v.clipsToBounds = true
         v.translatesAutoresizingMaskIntoConstraints = false
         return v
     }()
+
+    private var bubbleGradient: CAGradientLayer?
 
     private let messageLabel: UILabel = {
         let l = UILabel()
@@ -45,6 +47,17 @@ final class OutgoingMessageCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        if bubbleGradient == nil {
+            let gradient = CAGradientLayer.ripplePrimary(frame: bubbleView.bounds)
+            bubbleView.layer.insertSublayer(gradient, at: 0)
+            bubbleGradient = gradient
+        } else {
+            bubbleGradient?.frame = bubbleView.bounds
+        }
     }
 
     required init?(coder: NSCoder) { fatalError() }

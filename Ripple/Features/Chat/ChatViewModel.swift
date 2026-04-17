@@ -100,7 +100,6 @@ final class ChatViewModel: ObservableObject {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
-        // Нет сети — кладём в офлайн-очередь
         guard OfflineMessageQueue.shared.isConnected else {
             let queued = QueuedMessage(
                 conversationId: conversationId,
@@ -109,7 +108,6 @@ final class ChatViewModel: ObservableObject {
                 senderName: currentUserName
             )
             OfflineMessageQueue.shared.enqueue(queued)
-            // Показываем сообщение локально (оптимистичный UI)
             errorMessage = "Нет сети. Сообщение будет отправлено автоматически."
             return
         }
@@ -181,7 +179,6 @@ final class ChatViewModel: ObservableObject {
                 isTyping: true
             )
         }
-        // Через 3 сек без ввода — сбрасываем статус
         typingDebounce = Task {
             try? await Task.sleep(for: .seconds(3))
             guard !Task.isCancelled else { return }

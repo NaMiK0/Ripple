@@ -40,22 +40,18 @@ final class AuthViewModel: ObservableObject {
     // MARK: - Validation
 
     private func bindValidation() {
+        // Все 4 поля включены в один CombineLatest — форма перевалидируется
+        // при изменении любого из них (в том числе displayName)
         Publishers.CombineLatest3($email, $password, $mode)
-            .map { [weak self] email, password, mode -> Bool in
-                guard let self else { return false }
+            .combineLatest($displayName) { tuple, name -> Bool in
+                let (email, password, mode) = tuple
                 let emailValid = email.contains("@") && email.contains(".")
                 let passwordValid = password.count >= 6
                 if mode == .register {
-                    return emailValid && passwordValid && !self.displayName.isEmpty
+                    return emailValid && passwordValid
+                        && !name.trimmingCharacters(in: .whitespaces).isEmpty
                 }
                 return emailValid && passwordValid
-            }
-            .combineLatest($displayName) { [weak self] baseValid, name -> Bool in
-                guard let self else { return false }
-                if self.mode == .register {
-                    return baseValid && !name.trimmingCharacters(in: .whitespaces).isEmpty
-                }
-                return baseValid
             }
             .assign(to: &$isFormValid)
     }
