@@ -12,6 +12,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         FirebaseApp.configure()
+        AppTheme.apply()
 
         // Сохраняем conversationId если приложение запущено тапом по уведомлению (terminated state)
         if let notification = launchOptions?[.remoteNotification] as? [String: AnyObject],
@@ -20,6 +21,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         setupPushNotifications(application)
+
+        // Запускаем мониторинг сети (инициализирует синглтон и NWPathMonitor)
+        _ = OfflineMessageQueue.shared
+
+        // Слушаем обновления FCM-токена из MessagingDelegate
+        NotificationCenter.default.addObserver(
+            forName: .fcmTokenUpdated,
+            object: nil,
+            queue: .main
+        ) { notification in
+            guard let token = notification.object as? String else { return }
+            PushNotificationService.shared.updateFCMToken(token)
+        }
+
         return true
     }
 

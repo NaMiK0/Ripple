@@ -58,7 +58,19 @@ final class AppCoordinator {
     // MARK: - Main Flow
 
     private func showMainFlow() {
+        // Запрашиваем разрешение на push-уведомления
+        PushNotificationService.shared.requestAuthorization()
+
+        // Подписываемся на восстановление сети → flush офлайн-очереди
+        OfflineMessageQueue.shared.onConnectionRestored = { [weak self] in
+            self?.flushOfflineQueue()
+        }
+
         let coordinator = ConversationsCoordinator(navigationController: navigationController)
+        coordinator.onLogout = { [weak self] in
+            self?.conversationsCoordinator = nil
+            self?.showAuthFlow()
+        }
         conversationsCoordinator = coordinator
         coordinator.start()
 
@@ -66,6 +78,30 @@ final class AppCoordinator {
         if let conversationId = AppCoordinator.pendingDeepLink {
             AppCoordinator.pendingDeepLink = nil
             coordinator.openChat(conversationId: conversationId)
+        }
+    }
+
+    // MARK: - Offline Queue Flush
+
+    private func flushOfflineQueue() {
+        let pending = OfflineMessageQueue.shared.pendingMessages
+        guard !pending.isEmpty else { return }
+
+        let messageService = MessageService()
+        for queued in pending {
+            Task {
+                do {
+                    try await messageService.send(
+                        text: queued.text,
+                        in: queued.conversationId,
+                        senderId: queued.senderId,
+                        senderName: queued.senderName
+                    )
+                    OfflineMessageQueue.shared.dequeue(id: queued.id)
+                } catch {
+                    print("Failed to flush queued message \(queued.id): \(error)")
+                }
+            }
         }
     }
 

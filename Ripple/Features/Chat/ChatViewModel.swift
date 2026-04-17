@@ -100,6 +100,20 @@ final class ChatViewModel: ObservableObject {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
+        // Нет сети — кладём в офлайн-очередь
+        guard OfflineMessageQueue.shared.isConnected else {
+            let queued = QueuedMessage(
+                conversationId: conversationId,
+                text: trimmed,
+                senderId: currentUserId,
+                senderName: currentUserName
+            )
+            OfflineMessageQueue.shared.enqueue(queued)
+            // Показываем сообщение локально (оптимистичный UI)
+            errorMessage = "Нет сети. Сообщение будет отправлено автоматически."
+            return
+        }
+
         Task {
             do {
                 try await messageService.send(

@@ -8,6 +8,7 @@ final class ConversationsCoordinator {
 
     private let navigationController: UINavigationController
     private var chatCoordinator: ChatCoordinator?
+    var onLogout: (() -> Void)?
 
     // MARK: - Init
 
@@ -37,11 +38,25 @@ final class ConversationsCoordinator {
             )
         }
 
+        viewModel.onProfileTapped = { [weak self] in
+            self?.showProfile()
+        }
+
         let viewController = ConversationsViewController(viewModel: viewModel)
         navigationController.setViewControllers([viewController], animated: false)
     }
 
     // MARK: - Navigation
+
+    private func showProfile() {
+        let vc = ProfileViewController()
+        vc.onLogout = { [weak self] in
+            self?.onLogout?()
+        }
+        let nav = UINavigationController(rootViewController: vc)
+        nav.modalPresentationStyle = .formSheet
+        navigationController.present(nav, animated: true)
+    }
 
     func openChat(conversationId: String) {
         let coordinator = ChatCoordinator(

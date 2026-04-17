@@ -112,6 +112,12 @@ final class ConversationsViewController: UIViewController {
             target: self,
             action: #selector(newConversationTapped)
         )
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "person.circle"),
+            style: .plain,
+            target: self,
+            action: #selector(profileTapped)
+        )
     }
 
     // MARK: - DataSource (Diffable)
@@ -185,6 +191,10 @@ final class ConversationsViewController: UIViewController {
 
     @objc private func newConversationTapped() {
         viewModel.newConversationTapped()
+    }
+
+    @objc private func profileTapped() {
+        viewModel.onProfileTapped?()
     }
 
     // MARK: - Helpers

@@ -141,16 +141,15 @@ final class ConversationCell: UITableViewCell {
         timeLabel.text = timestamp.chatFormatted()
         onlineIndicator.isHidden = !isOnline
 
-        // Аватар через Kingfisher
+        // Аватар — Kingfisher если есть URL, иначе инициалы
         if let urlString = avatarURL, let url = URL(string: urlString) {
             avatarImageView.kf.setImage(
                 with: url,
-                placeholder: UIImage(systemName: "person.circle.fill"),
+                placeholder: nil,
                 options: [.transition(.fade(0.2))]
             )
         } else {
-            avatarImageView.image = UIImage(systemName: "person.circle.fill")
-            avatarImageView.tintColor = .systemGray3
+            avatarImageView.setInitialsAvatar(name: name, size: 48)
         }
 
         // Бейдж непрочитанных

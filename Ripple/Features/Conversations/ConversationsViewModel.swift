@@ -15,6 +15,7 @@ final class ConversationsViewModel: ObservableObject {
 
     var onOpenConversation: ((String) -> Void)?
     var onNewConversation: (() -> Void)?
+    var onProfileTapped: (() -> Void)?
 
     // MARK: - Private
 
