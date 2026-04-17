@@ -1,6 +1,7 @@
 import UIKit
 import FirebaseAuth
 
+@MainActor
 final class ConversationsCoordinator {
 
     // MARK: - Properties
@@ -43,12 +44,12 @@ final class ConversationsCoordinator {
     // MARK: - Navigation
 
     func openChat(conversationId: String) {
-        // ChatCoordinator подключим в следующей части
-        // Пока — заглушка
-        let vc = UIViewController()
-        vc.view.backgroundColor = .systemBackground
-        vc.title = "Chat"
-        navigationController.pushViewController(vc, animated: true)
+        let coordinator = ChatCoordinator(
+            navigationController: navigationController,
+            conversationId: conversationId
+        )
+        chatCoordinator = coordinator
+        coordinator.start()
     }
 
     private func showNewConversation(

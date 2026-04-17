@@ -10,7 +10,8 @@
 		110673122F91112A00D11411 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 110673112F91112A00D11411 /* FirebaseAuth */; };
 		110673142F91112A00D11411 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 110673132F91112A00D11411 /* FirebaseFirestore */; };
 		110673162F91112A00D11411 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 110673152F91112A00D11411 /* FirebaseMessaging */; };
-		110673182F91112A00D11411 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 110673172F91112A00D11411 /* FirebaseStorage */; };
+		813B6875DA79405EA8045308 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = BEDFC40898EF415793EAC5B4 /* Kingfisher */; };
+		B6BE274A73D14772A78F7059 /* SkeletonView in Frameworks */ = {isa = PBXBuildFile; productRef = 673B2634275541738A08C78B /* SkeletonView */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -73,9 +74,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				110673162F91112A00D11411 /* FirebaseMessaging in Frameworks */,
-				110673182F91112A00D11411 /* FirebaseStorage in Frameworks */,
 				110673122F91112A00D11411 /* FirebaseAuth in Frameworks */,
 				110673142F91112A00D11411 /* FirebaseFirestore in Frameworks */,
+				813B6875DA79405EA8045308 /* Kingfisher in Frameworks */,
+				B6BE274A73D14772A78F7059 /* SkeletonView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -139,7 +141,8 @@
 				110673112F91112A00D11411 /* FirebaseAuth */,
 				110673132F91112A00D11411 /* FirebaseFirestore */,
 				110673152F91112A00D11411 /* FirebaseMessaging */,
-				110673172F91112A00D11411 /* FirebaseStorage */,
+				BEDFC40898EF415793EAC5B4 /* Kingfisher */,
+				673B2634275541738A08C78B /* SkeletonView */,
 			);
 			productName = Ripple;
 			productReference = 110672D12F9109A100D11411 /* Ripple.app */;
@@ -225,6 +228,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				110673102F91112A00D11411 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				19731C9BB1524FFB8027233E /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				E479513A0CDC43A4B22F972E /* XCRemoteSwiftPackageReference "SkeletonView" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 110672D22F9109A100D11411 /* Products */;
@@ -311,7 +316,6 @@
 				INFOPLIST_FILE = Ripple/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -323,7 +327,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
@@ -342,7 +345,6 @@
 				INFOPLIST_FILE = Ripple/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -354,7 +356,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
@@ -611,6 +612,22 @@
 				minimumVersion = 12.12.0;
 			};
 		};
+		19731C9BB1524FFB8027233E /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+		E479513A0CDC43A4B22F972E /* XCRemoteSwiftPackageReference "SkeletonView" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Juanpe/SkeletonView";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.30.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -629,10 +646,15 @@
 			package = 110673102F91112A00D11411 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
 		};
-		110673172F91112A00D11411 /* FirebaseStorage */ = {
+		673B2634275541738A08C78B /* SkeletonView */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 110673102F91112A00D11411 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseStorage;
+			package = E479513A0CDC43A4B22F972E /* XCRemoteSwiftPackageReference "SkeletonView" */;
+			productName = SkeletonView;
+		};
+		BEDFC40898EF415793EAC5B4 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 19731C9BB1524FFB8027233E /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

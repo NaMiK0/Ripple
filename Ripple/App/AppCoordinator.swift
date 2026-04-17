@@ -1,6 +1,7 @@
 import UIKit
 import FirebaseAuth
 
+@MainActor
 final class AppCoordinator {
 
     // MARK: - Properties
