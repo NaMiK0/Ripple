@@ -8,6 +8,7 @@ final class AppCoordinator {
     private let window: UIWindow
     private let navigationController: UINavigationController
     private var authCoordinator: AuthCoordinator?
+    private var conversationsCoordinator: ConversationsCoordinator?
 
     // Используется для deep link из push-уведомления (приложение было убито)
     static var pendingDeepLink: String?
@@ -25,6 +26,14 @@ final class AppCoordinator {
     func start() {
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
+
+        // Слушаем deep link из push-уведомления когда приложение работает в фоне
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleOpenConversation(_:)),
+            name: .openConversation,
+            object: nil
+        )
 
         if Auth.auth().currentUser != nil {
             showMainFlow()
@@ -47,19 +56,22 @@ final class AppCoordinator {
 
     // MARK: - Main Flow
 
-    // ConversationsCoordinator будет добавлен в следующих частях.
-    // Пока — заглушка, чтобы проект компилировался.
     private func showMainFlow() {
-        let placeholder = UIViewController()
-        placeholder.view.backgroundColor = .systemBackground
-        placeholder.title = "Chats"
-        navigationController.setViewControllers([placeholder], animated: false)
+        let coordinator = ConversationsCoordinator(navigationController: navigationController)
+        conversationsCoordinator = coordinator
+        coordinator.start()
 
-        // Обрабатываем deep link, если приложение открылось через уведомление
+        // Обрабатываем deep link, если приложение открылось через уведомление (terminated state)
         if let conversationId = AppCoordinator.pendingDeepLink {
             AppCoordinator.pendingDeepLink = nil
-            // openChat(conversationId: conversationId) — подключим позже
-            _ = conversationId
+            coordinator.openChat(conversationId: conversationId)
         }
+    }
+
+    // MARK: - Deep Link
+
+    @objc private func handleOpenConversation(_ notification: Notification) {
+        guard let conversationId = notification.object as? String else { return }
+        conversationsCoordinator?.openChat(conversationId: conversationId)
     }
 }
